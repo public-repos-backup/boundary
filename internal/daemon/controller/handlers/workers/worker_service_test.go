@@ -5,6 +5,7 @@ package workers
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"sort"
 	"strings"
@@ -285,7 +286,7 @@ func TestGet(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			s, err := NewService(context.Background(), repoFn, iamRepoFn, workerAuthRepoFn, nil)
+			s, err := NewService(context.Background(), repoFn, iamRepoFn, workerAuthRepoFn, nil, rand.Reader)
 			require.NoError(t, err, "Couldn't create new worker service.")
 
 			got, err := s.GetWorker(auth.DisabledAuthTestContext(iamRepoFn, tc.scopeId), tc.req)
@@ -425,7 +426,7 @@ func TestList(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert, require := assert.New(t), require.New(t)
-			s, err := NewService(context.Background(), repoFn, iamRepoFn, workerAuthRepoFn, nil)
+			s, err := NewService(context.Background(), repoFn, iamRepoFn, workerAuthRepoFn, nil, rand.Reader)
 			require.NoError(err, "Couldn't create new worker service.")
 
 			// Test with a non-anon user
@@ -485,7 +486,7 @@ func TestDelete(t *testing.T) {
 		return workerAuthRepo, nil
 	}
 
-	s, err := NewService(ctx, repoFn, iamRepoFn, workerAuthRepoFn, nil)
+	s, err := NewService(ctx, repoFn, iamRepoFn, workerAuthRepoFn, nil, rand.Reader)
 	require.NoError(t, err, "Error when getting new worker service.")
 
 	wUnmanaged := server.TestKmsWorker(t, conn, wrap, server.WithWorkerTags(&server.Tag{
@@ -615,7 +616,7 @@ func TestUpdate(t *testing.T) {
 			Id: wkr.GetPublicId(),
 		}
 	}
-	workerService, err := NewService(ctx, repoFn, iamRepoFn, workerAuthRepoFn, nil)
+	workerService, err := NewService(ctx, repoFn, iamRepoFn, workerAuthRepoFn, nil, rand.Reader)
 	require.NoError(t, err)
 	expectedScope := &scopes.ScopeInfo{Id: scope.Global.String(), Type: scope.Global.String(), Name: scope.Global.String(), Description: "Global Scope"}
 
@@ -1104,7 +1105,7 @@ func TestUpdate_DeprecatedKMS(t *testing.T) {
 	toMerge := &pbs.UpdateWorkerRequest{
 		Id: wkr.GetPublicId(),
 	}
-	workerService, err := NewService(ctx, repoFn, iamRepoFn, workerAuthRepoFn, nil)
+	workerService, err := NewService(ctx, repoFn, iamRepoFn, workerAuthRepoFn, nil, rand.Reader)
 	require.NoError(t, err)
 
 	cases := []struct {
@@ -1189,7 +1190,7 @@ func TestUpdate_BadVersion(t *testing.T) {
 		return repo, nil
 	}
 
-	workerService, err := NewService(ctx, repoFn, iamRepoFn, workerAuthRepoFn, nil)
+	workerService, err := NewService(ctx, repoFn, iamRepoFn, workerAuthRepoFn, nil, rand.Reader)
 	require.NoError(t, err, "Failed to create a new host set service.")
 
 	wkr := server.TestPkiWorker(t, conn, wrapper)
@@ -1227,7 +1228,7 @@ func TestCreateWorkerLed(t *testing.T) {
 		return workerAuthRepo, nil
 	}
 
-	testSrv, err := NewService(testCtx, repoFn, iamRepoFn, workerAuthRepoFn, nil)
+	testSrv, err := NewService(testCtx, repoFn, iamRepoFn, workerAuthRepoFn, nil, rand.Reader)
 	require.NoError(t, err, "Error when getting new worker service.")
 
 	// Get an initial set of authorized node credentials
@@ -1479,7 +1480,7 @@ func TestCreateWorkerLed(t *testing.T) {
 				repoFn := func() (*server.Repository, error) {
 					return server.NewRepository(testCtx, rw, &db.Db{}, testKms)
 				}
-				testSrv, err := NewService(testCtx, repoFn, iamRepoFn, workerAuthRepoFn, nil)
+				testSrv, err := NewService(testCtx, repoFn, iamRepoFn, workerAuthRepoFn, nil, rand.Reader)
 				require.NoError(t, err, "Error when getting new worker service.")
 				return testSrv
 			}(),
@@ -1512,7 +1513,7 @@ func TestCreateWorkerLed(t *testing.T) {
 						return server.NewRepository(testCtx, rw, rw, testKms)
 					}
 				}
-				testSrv, err := NewService(testCtx, repoFn, iamRepoFn, workerAuthRepoFn, nil)
+				testSrv, err := NewService(testCtx, repoFn, iamRepoFn, workerAuthRepoFn, nil, rand.Reader)
 				require.NoError(t, err, "Error when getting new worker service.")
 				return testSrv
 			}(),
@@ -1612,7 +1613,7 @@ func TestCreateControllerLed(t *testing.T) {
 		return rootStorage, nil
 	}
 
-	testSrv, err := NewService(testCtx, repoFn, iamRepoFn, authRepoFn, nil)
+	testSrv, err := NewService(testCtx, repoFn, iamRepoFn, authRepoFn, nil, rand.Reader)
 	require.NoError(t, err, "Error when getting new worker service.")
 
 	// Get an initial set of authorized node credentials
@@ -1826,7 +1827,7 @@ func TestCreateControllerLed(t *testing.T) {
 				repoFn := func() (*server.Repository, error) {
 					return server.NewRepository(testCtx, rw, &db.Db{}, testKms)
 				}
-				testSrv, err := NewService(testCtx, repoFn, iamRepoFn, authRepoFn, nil)
+				testSrv, err := NewService(testCtx, repoFn, iamRepoFn, authRepoFn, nil, rand.Reader)
 				require.NoError(t, err, "Error when getting new worker service.")
 				return testSrv
 			}(),
@@ -1858,7 +1859,7 @@ func TestCreateControllerLed(t *testing.T) {
 						return server.NewRepository(testCtx, rw, rw, testKms)
 					}
 				}
-				testSrv, err := NewService(testCtx, repoFn, iamRepoFn, authRepoFn, nil)
+				testSrv, err := NewService(testCtx, repoFn, iamRepoFn, authRepoFn, nil, rand.Reader)
 				require.NoError(t, err, "Error when getting new worker service.")
 				return testSrv
 			}(),
@@ -1960,7 +1961,7 @@ func TestService_AddWorkerTags(t *testing.T) {
 	workerAuthRepoFn := func() (*server.WorkerAuthRepositoryStorage, error) {
 		return workerAuthRepo, nil
 	}
-	s, err := NewService(context.Background(), repoFn, iamRepoFn, workerAuthRepoFn, nil)
+	s, err := NewService(context.Background(), repoFn, iamRepoFn, workerAuthRepoFn, nil, rand.Reader)
 	require.NoError(err)
 	worker := server.TestKmsWorker(t, conn, wrapper)
 
@@ -2120,7 +2121,7 @@ func TestService_SetWorkerTags(t *testing.T) {
 	workerAuthRepoFn := func() (*server.WorkerAuthRepositoryStorage, error) {
 		return workerAuthRepo, nil
 	}
-	s, err := NewService(context.Background(), repoFn, iamRepoFn, workerAuthRepoFn, nil)
+	s, err := NewService(context.Background(), repoFn, iamRepoFn, workerAuthRepoFn, nil, rand.Reader)
 	require.NoError(err)
 	worker := server.TestKmsWorker(t, conn, wrapper)
 
@@ -2283,7 +2284,7 @@ func TestService_RemoveWorkerTags(t *testing.T) {
 	workerAuthRepoFn := func() (*server.WorkerAuthRepositoryStorage, error) {
 		return workerAuthRepo, nil
 	}
-	s, err := NewService(context.Background(), repoFn, iamRepoFn, workerAuthRepoFn, nil)
+	s, err := NewService(context.Background(), repoFn, iamRepoFn, workerAuthRepoFn, nil, rand.Reader)
 	require.NoError(err)
 	worker := server.TestKmsWorker(t, conn, wrapper)
 
@@ -2482,7 +2483,7 @@ func TestReadCertificateAuthority(t *testing.T) {
 	_, err = rotation.RotateRootCertificates(ctx, workerAuthRepo)
 	require.NoError(err)
 
-	testSrv, err := NewService(ctx, repoFn, iamRepoFn, workerAuthRepoFn, nil)
+	testSrv, err := NewService(ctx, repoFn, iamRepoFn, workerAuthRepoFn, nil, rand.Reader)
 	require.NoError(err, "Error when getting new worker service.")
 
 	tests := []struct {
@@ -2558,7 +2559,7 @@ func TestReinitializeCertificateAuthority(t *testing.T) {
 	_, err = rotation.RotateRootCertificates(ctx, workerAuthRepo)
 	require.NoError(err)
 
-	testSrv, err := NewService(ctx, repoFn, iamRepoFn, workerAuthRepoFn, nil)
+	testSrv, err := NewService(ctx, repoFn, iamRepoFn, workerAuthRepoFn, nil, rand.Reader)
 	require.NoError(err, "Error when getting new worker service.")
 
 	tests := []struct {

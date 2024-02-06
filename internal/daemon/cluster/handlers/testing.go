@@ -5,6 +5,7 @@ package handlers
 
 import (
 	"context"
+	"crypto/rand"
 	"net"
 	"sync"
 	"testing"
@@ -55,7 +56,7 @@ func TestUpstreamService(t *testing.T) (UpstreamMessageServiceClientProducer, *t
 	require.NoError(t, err)
 
 	// start an upstream controller
-	testController, err := NewControllerUpstreamMessageServiceServer(testCtx, initStorage)
+	testController, err := NewControllerUpstreamMessageServiceServer(testCtx, initStorage, rand.Reader)
 	require.NoError(t, err)
 	require.NotNil(t, testController)
 

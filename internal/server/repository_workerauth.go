@@ -81,7 +81,6 @@ func (r *WorkerAuthRepositoryStorage) Store(ctx context.Context, msg nodee.Messa
 	switch t := msg.(type) {
 	case *types.NodeInformation:
 		// Encrypt the private key
-
 		if _, err := r.writer.DoTx(ctx, db.StdRetryCnt, db.ExpBackoff{}, func(read db.Reader, w db.Writer) error {
 			return StoreNodeInformationTx(ctx, read, w, r.kms, scope.Global.String(), t)
 		}); err != nil {
@@ -93,6 +92,7 @@ func (r *WorkerAuthRepositoryStorage) Store(ctx context.Context, msg nodee.Messa
 		if err != nil {
 			return errors.Wrap(ctx, err, op)
 		}
+
 	default:
 		return errors.New(ctx, errors.InvalidParameter, op, fmt.Sprintf("message type %T not supported for Store", msg))
 	}
